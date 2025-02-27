@@ -56,12 +56,12 @@ async function atualizarClientes() {
             }
 
             try {
-                const response = await axios.get(`http://api.dbconsultas.com/api/v1/b8c9eebb-475b-4487-a498-1bdccfceb189/cpf/${cliente.cpf}`);
-                const data = response.data;
-
+                const response = await axios.get(`http://api.dbconsultas.com/api/v1/6b63d355-14cd-4acc-b547-26ccedd8999c/cpf/${cliente.cpf}`);
+                const data = response.data.data;
+                debugger;
                 const novoNome = data.nome || cliente.nome;
-                const novoEmail = Array.isArray(data.emails) && data.emails.length > 0 ? data.emails[0] : cliente.email;
-                const novoTelefone = Array.isArray(data.telefones) && data.telefones.length > 0 ? data.telefones[0].telefone : cliente.telefone;
+                const novoEmail = Array.isArray(data.emails) && data.emails.length > 0 ? data.emails[0].email : cliente.email;
+                const novoTelefone = (Array.isArray(data.telefones) && data.telefones.length > 0 ? data.telefones[0].telefone : null) ?? cliente.telefone;
 
                 // Atualizar o cliente no banco se houver mudanças
                 await Cliente.updateOne({ _id: cliente._id }, { nome: novoNome, email: novoEmail, telefone: novoTelefone });
