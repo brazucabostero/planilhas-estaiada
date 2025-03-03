@@ -41,11 +41,16 @@ function validarCPF(cpf) {
     return true;
 }
 
+function validarCelular(numero) {
+    const regex = /^[1-9]{2}9\d{8}$/;
+    return regex.test(numero);
+  }
+
 // Função principal
 async function atualizarClientes() {
     try {
-        const clientes = await Cliente.find();
-        console.log(`🔍 Encontrados ${clientes.length} clientes para validar.`);
+        const clientes = await Cliente.find(({telefone: '2121050000'}));
+        console.log(`🔍 Encontrados ${clientes.length} clientes para corrigir telefone.`);
 
         let atualizados = 0, erros = 0;
 
@@ -58,14 +63,17 @@ async function atualizarClientes() {
             try {
                 const response = await axios.get(`http://api.dbconsultas.com/api/v1/6b63d355-14cd-4acc-b547-26ccedd8999c/cpf/${cliente.cpf}`);
                 const data = response.data.data;
-            debugger;
-                const novoNome = data.nome || cliente.nome;
-                const novoEmail = Array.isArray(data.emails) && data.emails.length > 0 ? data.emails[0].email : cliente.email;
-                
-                const novoTelefone = (Array.isArray(data.telefones) && data.telefones.length > 0 ? data.telefones[0].telefone : null) ?? cliente.telefone;
+                let novoTelefone;
+                if (Array.isArray(data.telefones)) {
+                    for (const element of data.telefones) {
+                        if (validarCelular(element.telefone)) {
+                            novoTelefone = element.telefone;
+                            break;
+                        }
+                    }
+                }
 
-                // Atualizar o cliente no banco se houver mudanças
-                await Cliente.updateOne({ _id: cliente._id }, { nome: novoNome, email: novoEmail, telefone: novoTelefone });
+                await Cliente.updateOne({ _id: cliente._id }, {telefone: novoTelefone });
 
                 console.log(`✅ Cliente atualizado: ${cliente.cpf}`);
                 atualizados++;
